@@ -1,0 +1,27 @@
+# Core LLM stack
+langchain==0.3.25
+langchain-google-genai==2.1.4
+langchain-community==0.3.23
+google-generativeai==0.8.5
+
+# Vector database (local, no API key needed)
+chromadb==0.6.3
+langchain-chroma==0.2.4
+
+# Local embeddings (free, no API key)
+sentence-transformers==3.4.1
+
+# PDF ingestion
+pypdf==5.4.0
+
+# UI
+streamlit==1.45.0
+
+# Web search tool (free, no API key)
+duckduckgo-search==8.0.1
+
+# Eval
+pytest==8.3.5
+
+# Utilities
+python-dotenv==1.1.0

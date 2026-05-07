@@ -1,0 +1,23 @@
+# Environment
+.env
+
+# Vector DB (generated at runtime by ingest.py)
+chromadb/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+DocAgent-Project-Brief.md

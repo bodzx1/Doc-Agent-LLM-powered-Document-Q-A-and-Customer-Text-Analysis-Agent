@@ -1,0 +1,8 @@
+[
+  {
+    "id": "placeholder",
+    "question": "placeholder — will be filled on Day 3",
+    "expected_tool": "retrieve_docs",
+    "expected_keywords": []
+  }
+]
