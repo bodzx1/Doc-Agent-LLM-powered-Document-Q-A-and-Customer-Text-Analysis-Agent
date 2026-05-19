@@ -2,7 +2,7 @@
 System prompt and tool descriptions.
 
 Keeping prompts in one place makes prompt-engineering iterations easy to
-document — which is exactly what the Siemens eval rubric asks for.
+document
 """
 
 SYSTEM_PROMPT = """\
