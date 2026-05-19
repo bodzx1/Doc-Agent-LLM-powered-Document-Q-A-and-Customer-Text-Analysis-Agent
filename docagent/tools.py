@@ -13,9 +13,7 @@ from duckduckgo_search.exceptions import DuckDuckGoSearchException
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
-_RAG_PROMPT = "You are a helpful assistant. Answer the question using only the provided context. If the answer is not in the context, say so."
-##i added this prompt as gemini itself was saying call retreieve_docs but no agent executor responded as i havent implemented it
-##gemini requests tool calls doesnt execute them
+import docagent.prompts as prompts
 
 CHROMA_DIR = "chromadb"
 COLLECTION_NAME = "docagent"
@@ -31,21 +29,25 @@ _vectorstore = Chroma(
         embedding_function=embeddings,
         persist_directory=CHROMA_DIR,
     )
-
-"""Load the Gemini chat model once."""
-_llm=ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
-def get_answer(question: str) -> str:
-    """Retrieve relevant chunks then ask the LLM to answer using them."""
+def get_context(query: str) -> str:
+    """Helper function to retrieve relevant chunks from ChromaDB for a given query."""
     # 1. Embed the question and find the closest chunks in ChromaDB
-    docs = _vectorstore.similarity_search(question, k=TOP_K)
-
+    docs = _vectorstore.similarity_search(query, k=TOP_K)
     # 2. Concatenate chunk texts into a single context block
     context = "\n\n---\n\n".join(doc.page_content for doc in docs)
-
+    return context
+"""Load the Gemini chat model once."""
+_llm=ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+def get_answer(question: str,prompt: str) -> str:
+    if prompt == prompts.RAG_PROMPT:
+        context = get_context(question)  # only retrieve context for RAG prompt, not for tools that analyze customer text
+    else:
+        context = ""  # for non-RAG prompts, we don't have a context to pass in, but get_answer still expects a string, so passing empty string 
     # 3. Build the messages: system prompt + context + user question
+    human_content = f"Context from documents:\n{context}\n\nQuestion: {question}" if context else question
     messages = [
-        SystemMessage(content=_RAG_PROMPT),
-        HumanMessage(content=f"Context from documents:\n{context}\n\nQuestion: {question}"),
+        SystemMessage(content=prompt),
+        HumanMessage(content=human_content),
     ]
     response = _llm.invoke(messages)
     return response.content
@@ -54,7 +56,7 @@ def get_answer(question: str) -> str:
 @tool
 def retrieve_docs(query: str) -> str:
     """Search the indexed documents and return the top relevant passages."""
-    return get_answer(query)
+    return get_answer(query, prompts.RAG_PROMPT)  # use the RAG-specific prompt that instructs the agent to answer only from the retrieved context
 
 @tool
 def calculator(expression: str) -> str:
@@ -81,13 +83,13 @@ def web_search(query: str) -> str:
 @tool
 def extract_themes(text: str) -> str:
     """Identify the top recurring themes in the provided customer text."""
-    raise NotImplementedError
+    return get_answer(text, prompts.EXTRACT_THEMES_PROMPT)
 
 
 @tool
 def analyze_sentiment(text: str) -> str:
     """Classify the overall sentiment (positive / negative / neutral) of the text."""
-    raise NotImplementedError
+    return get_answer(text, prompts.ANALYZE_SENTIMENT_PROMPT)
 
 
 ALL_TOOLS = [retrieve_docs, calculator, web_search, extract_themes, analyze_sentiment]

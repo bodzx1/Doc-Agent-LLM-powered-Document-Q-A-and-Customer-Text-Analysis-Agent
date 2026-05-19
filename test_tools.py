@@ -36,8 +36,24 @@ def test_retrieve_docs_tool():
     res = tools.retrieve_docs.invoke(query)
     print(f"Retrieve Docs Result for '{query}':\n")
     print(res)
+def test_extract_themes_tool():
+    print("--- Running Extract Themes Tool Test ---")
+    
+    # Test case: Basic theme extraction query
+    text = "I love the product but the customer service could be better. The interface is intuitive and easy to use."
+    res = tools.extract_themes.invoke(text)
+    print(f"Extract Themes Result for provided customer feedback:\n{text}\nResult:\n{res}")
+def test_analyze_sentiment_tool():
+    print("--- Running Analyze Sentiment Tool Test ---")
+    
+    # Test case: Basic sentiment analysis query
+    text = "I love the product but the customer service could be better. The interface is intuitive and easy to use."
+    res = tools.analyze_sentiment.invoke(text)
+    print(f"Analyze Sentiment Result for provided customer feedback:\n{text}\nResult:\n{res}")
 if __name__ == "__main__":
     #test_calculator_tool()
     # test_web_search_tool()
-    test_retrieve_docs_tool()
+    #test_retrieve_docs_tool()
+    test_extract_themes_tool()
+    test_analyze_sentiment_tool()
     
