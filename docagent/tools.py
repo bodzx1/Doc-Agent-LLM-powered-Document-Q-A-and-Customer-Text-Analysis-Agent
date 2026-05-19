@@ -6,26 +6,76 @@ the AgentExecutor and generate the JSON schema for function-calling.
 """
 
 from langchain.tools import tool
+from langchain.schema import HumanMessage, SystemMessage
+import numexpr
+from duckduckgo_search import DDGS
+from duckduckgo_search.exceptions import DuckDuckGoSearchException
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_google_genai import ChatGoogleGenerativeAI
+_RAG_PROMPT = "You are a helpful assistant. Answer the question using only the provided context. If the answer is not in the context, say so."
+##i added this prompt as gemini itself was saying call retreieve_docs but no agent executor responded as i havent implemented it
+##gemini requests tool calls doesnt execute them
 
-# TODO Day 2: implement all five tools
+CHROMA_DIR = "chromadb"
+COLLECTION_NAME = "docagent"
+
+
+
+TOP_K = 3 # number of chunks to retrieve per question
+
+"""Load the ChromaDB vectorstore once and reuse across all queries."""
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+_vectorstore = Chroma(
+        collection_name=COLLECTION_NAME,
+        embedding_function=embeddings,
+        persist_directory=CHROMA_DIR,
+    )
+
+"""Load the Gemini chat model once."""
+_llm=ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+def get_answer(question: str) -> str:
+    """Retrieve relevant chunks then ask the LLM to answer using them."""
+    # 1. Embed the question and find the closest chunks in ChromaDB
+    docs = _vectorstore.similarity_search(question, k=TOP_K)
+
+    # 2. Concatenate chunk texts into a single context block
+    context = "\n\n---\n\n".join(doc.page_content for doc in docs)
+
+    # 3. Build the messages: system prompt + context + user question
+    messages = [
+        SystemMessage(content=_RAG_PROMPT),
+        HumanMessage(content=f"Context from documents:\n{context}\n\nQuestion: {question}"),
+    ]
+    response = _llm.invoke(messages)
+    return response.content
 
 
 @tool
 def retrieve_docs(query: str) -> str:
     """Search the indexed documents and return the top relevant passages."""
-    raise NotImplementedError
-
+    return get_answer(query)
 
 @tool
 def calculator(expression: str) -> str:
     """Evaluate a safe mathematical expression and return the result."""
-    raise NotImplementedError
+    return str(numexpr.evaluate(expression))  # numexpr safely evaluates math expressions only, no random code execution  
 
 
 @tool
 def web_search(query: str) -> str:
     """Search the web and return a short summary of results."""
-    raise NotImplementedError
+    try:
+        with DDGS() as ddgs:
+            results = ddgs.text(query, max_results=3)
+        # results is a list of dicts: [{"title": ..., "href": ..., "body": ...}, ...]
+        # agent expects a single string back, so formatting each result as readable text
+        return "\n\n".join(
+            f"Title: {r['title']}\nURL: {r['href']}\nSummary: {r['body']}"
+            for r in results
+        )
+    except DuckDuckGoSearchException:
+        return "Web search is temporarily rate-limited. Try again in a few seconds."
 
 
 @tool
