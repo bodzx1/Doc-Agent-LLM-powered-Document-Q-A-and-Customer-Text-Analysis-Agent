@@ -29,6 +29,10 @@ _vectorstore = Chroma(
         embedding_function=embeddings,
         persist_directory=CHROMA_DIR,
     )
+"""Load the Gemini chat model once."""
+_llm=ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+
+
 def get_context(query: str) -> str:
     """Helper function to retrieve relevant chunks from ChromaDB for a given query."""
     # 1. Embed the question and find the closest chunks in ChromaDB
@@ -36,8 +40,9 @@ def get_context(query: str) -> str:
     # 2. Concatenate chunk texts into a single context block
     context = "\n\n---\n\n".join(doc.page_content for doc in docs)
     return context
-"""Load the Gemini chat model once."""
-_llm=ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+
+
+
 def get_answer(question: str,prompt: str) -> str:
     if prompt == prompts.RAG_PROMPT:
         context = get_context(question)  # only retrieve context for RAG prompt, not for tools that analyze customer text
