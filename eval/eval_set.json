@@ -1,8 +1,32 @@
 [
   {
-    "id": "placeholder",
-    "question": "placeholder — will be filled on Day 3",
+    "id": "doc_jetson_power",
+    "question": "What are the power requirements for the Jetson Nano Developer Kit?",
     "expected_tool": "retrieve_docs",
-    "expected_keywords": []
+    "expected_keywords": ["power", "watt", "5V"]
+  },
+  {
+    "id": "doc_attention_mechanism",
+    "question": "What is the core idea behind the attention mechanism in the Transformer model?",
+    "expected_tool": "retrieve_docs",
+    "expected_keywords": ["attention", "query", "key", "value"]
+  },
+  {
+    "id": "calculator_basic",
+    "question": "What is 128 * 1024 + 512?",
+    "expected_tool": "calculator",
+    "expected_keywords": ["131584"]
+  },
+  {
+    "id": "web_current_event",
+    "question": "What is the latest stable release of Python?",
+    "expected_tool": "web_search",
+    "expected_keywords": ["Python", "3"]
+  },
+  {
+    "id": "sentiment_mixed",
+    "question": "Analyze the sentiment of this feedback: 'The setup was straightforward but the documentation is outdated and support is slow to respond.'",
+    "expected_tool": "analyze_sentiment",
+    "expected_keywords": ["negative", "mixed", "neutral"]
   }
 ]

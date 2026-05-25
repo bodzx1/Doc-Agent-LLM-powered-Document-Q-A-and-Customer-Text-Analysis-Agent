@@ -1,8 +1,5 @@
 """
 System prompt and tool descriptions.
-
-Keeping prompts in one place makes prompt-engineering iterations easy to
-document
 """
 
 SYSTEM_PROMPT = """\
