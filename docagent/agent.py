@@ -13,6 +13,7 @@ def build_agent() -> AgentExecutor:
     """Construct and return the configured AgentExecutor."""
     prompt=ChatPromptTemplate.from_messages([
         ("system", prompts.SYSTEM_PROMPT),
+        MessagesPlaceholder("chat_history",optional=True),
         ("human", "{input}"),
         MessagesPlaceholder("agent_scratchpad"),
     ])
